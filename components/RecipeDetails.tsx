@@ -25,6 +25,7 @@ const RecipeDetails: React.FC<Props> = ({ recipe }) => (
         {recipe.ingredients.length > maxLines && <li>...</li>}
       </ul>
     </div>
+    <button className="rounded px-4 py-2 bg-gray-200 mt-2">Check it out</button>
   </div>
 );
 

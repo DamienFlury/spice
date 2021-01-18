@@ -1,11 +1,13 @@
-import { useState, useEffect, useReducer } from 'react';
-import { useQuery, usePaginatedQuery, useMutation } from 'react-query';
-import request from 'graphql-request';
-import { Ingredient, Action } from '@prisma/client';
-import IngredientsList from '../../components/IngredientsList';
-import SEO from '../../components/SEO';
-import TextField from '../../components/TextField';
-import AppBar from '../../components/AppBar';
+import { useState, useEffect, useReducer } from "react";
+import { useQuery, usePaginatedQuery, useMutation } from "react-query";
+import request from "graphql-request";
+import { Ingredient } from "@prisma/client";
+import IngredientsList from "../../components/IngredientsList";
+import SEO from "../../components/SEO";
+import TextField from "../../components/TextField";
+import AppBar from "../../components/AppBar";
+import { useForm } from "react-hook-form";
+import classNames from "classnames";
 
 const SEARCH_INGREDIENTS = /* GraphQL */ `
   query($startsWith: String) {
@@ -36,60 +38,56 @@ const CREATE_RECIPE = /* GraphQL */ `
 `;
 
 type IngredientAction =
-  | { type: 'add'; ingredient: Ingredient }
-  | { type: 'remove'; id: number };
+  | { type: "add"; ingredient: Ingredient }
+  | { type: "remove"; id: number };
 
 const ingredientsReducer = (
   state: Ingredient[],
   action: IngredientAction
 ): Ingredient[] => {
   switch (action.type) {
-    case 'add':
+    case "add":
       if (state.some((i) => i.id === action.ingredient.id)) {
         return state;
       }
       return [...state, action.ingredient];
-    case 'remove':
+    case "remove":
       return state.filter((i) => i.id !== action.id);
     default:
       return state;
   }
 };
 
-const RecipeCreator: React.FC = () => {
-  const [searchText, setSearchText] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+type FormState = {
+  title: string;
+  description: string;
+  imageUrl: string;
+};
 
+const RecipeCreator: React.FC = () => {
+  const [searchText, setSearchText] = useState("");
+  const { register, handleSubmit, errors } = useForm<FormState>();
   const { resolvedData } = usePaginatedQuery(
-    ['ingredients', searchText],
+    ["ingredients", searchText],
     () =>
       request<{ ingredients: Ingredient[] }>(
-        '/api/graphql',
+        "/api/graphql",
         SEARCH_INGREDIENTS,
         {
           startsWith: searchText,
         }
       ),
     {
-      enabled: searchText !== '',
+      enabled: searchText !== "",
     }
   );
 
-  const [mutate] = useMutation(() =>
-    request('/api/graphql', CREATE_RECIPE, {
-      title,
-      description,
-      imageUrl,
+  const [mutate] = useMutation((values: FormState) =>
+    request("/api/graphql", CREATE_RECIPE, {
+      ...values,
       ingredients: selectedIngredients.map((i) => i.id),
     })
   );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutate();
-  };
 
   const [selectedIngredients, dispatch] = useReducer(ingredientsReducer, []);
 
@@ -99,28 +97,41 @@ const RecipeCreator: React.FC = () => {
       <div className="container mx-auto rounded shadow p-4 my-4">
         <SEO title="Create Recipe | Spice" />
         <h2 className="text-4xl mb-4">Create Recipe</h2>
-        <form className="my-4" onSubmit={handleSubmit}>
+        <form
+          className="my-4"
+          onSubmit={handleSubmit((values) => {
+            mutate(values);
+          })}
+        >
           <div className="my-4">
-            <TextField
+            <label htmlFor="title">Title</label>
+            <input
+              className={classNames("w-full p-2 border rounded", {
+                "border-red-600": errors.title,
+              })}
+              name="title"
               id="title"
-              label="Title"
-              onChange={(e) => setTitle(e.target.value)}
-              value={title}
+              ref={register({ required: true })}
             />
             <div className="my-2">
-              <TextField
+              <label htmlFor="description">Description</label>
+              <textarea
+                name="description"
                 id="description"
-                label="Description"
-                onChange={(e) => setDescription(e.target.value)}
-                value={description}
-                multiline
+                className={classNames("w-full p-2 border rounded", {
+                  "border-red-600": errors.description,
+                })}
+                ref={register}
               />
             </div>
-            <TextField
-              id="image"
-              label="Image"
-              onChange={(e) => setImageUrl(e.target.value)}
-              value={imageUrl}
+            <label htmlFor="image-url">Image</label>
+            <input
+              name="imageUrl"
+              id="image-url"
+              className={classNames("w-full p-2 border rounded", {
+                "border-red-600": errors.imageUrl,
+              })}
+              ref={register({ required: true })}
             />
           </div>
           <div className="">
@@ -131,14 +142,14 @@ const RecipeCreator: React.FC = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
-            {searchText !== '' &&
+            {searchText !== "" &&
               resolvedData?.ingredients.map((i) => (
                 <button
                   className="p-4 w-full text-left"
                   key={i.id}
                   onClick={() => {
-                    dispatch({ type: 'add', ingredient: i });
-                    setSearchText('');
+                    dispatch({ type: "add", ingredient: i });
+                    setSearchText("");
                   }}
                   type="button"
                 >
@@ -149,7 +160,7 @@ const RecipeCreator: React.FC = () => {
           <IngredientsList
             ingredients={selectedIngredients}
             onRemove={(id) => {
-              dispatch({ type: 'remove', id });
+              dispatch({ type: "remove", id });
             }}
           />
           <button
