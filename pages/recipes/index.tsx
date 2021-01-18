@@ -1,9 +1,9 @@
-import { useQuery } from 'react-query';
-import { request } from 'graphql-request';
-import { Recipe, Ingredient } from '@prisma/client';
-import RecipeDetails from '../../components/RecipeDetails';
-import SEO from '../../components/SEO';
-import AppBar from '../../components/AppBar';
+import { useQuery } from "react-query";
+import { request } from "graphql-request";
+import { Recipe, Ingredient } from "@prisma/client";
+import RecipePreview from "../../components/RecipePreview";
+import SEO from "../../components/SEO";
+import AppBar from "../../components/AppBar";
 
 const FETCH_ALL_RECIPES = /* GraphQL */ `
   query {
@@ -21,24 +21,23 @@ const FETCH_ALL_RECIPES = /* GraphQL */ `
 `;
 
 const Recipes: React.FC = () => {
-  const { data } = useQuery('recipes', () =>
+  const { data } = useQuery("recipes", () =>
     request<{ recipes: (Recipe & { ingredients: Ingredient[] })[] }>(
-      '/api/graphql',
+      "/api/graphql",
       FETCH_ALL_RECIPES
     )
   );
 
-  if (!data) {
-    return <div>Loading</div>;
-  }
   return (
     <>
       <AppBar />
       <div className="container mx-auto">
         <SEO title="Recipes | Spice" />
-        {data.recipes.map((r) => (
-          <RecipeDetails key={r.id} recipe={r} />
-        ))}
+        {!data ? (
+          <div>Loading</div>
+        ) : (
+          data.recipes.map((r) => <RecipePreview key={r.id} recipe={r} />)
+        )}
       </div>
     </>
   );

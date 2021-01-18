@@ -1,5 +1,5 @@
-import { useState, useEffect, useReducer } from "react";
-import { useQuery, usePaginatedQuery, useMutation } from "react-query";
+import { useState, useReducer } from "react";
+import { usePaginatedQuery, useMutation } from "react-query";
 import request from "graphql-request";
 import { Ingredient } from "@prisma/client";
 import IngredientsList from "../../components/IngredientsList";

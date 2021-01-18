@@ -1,5 +1,5 @@
-import { ApolloServer, gql } from 'apollo-server-micro';
-import { PrismaClient, Recipe, Ingredient } from '@prisma/client';
+import { ApolloServer, gql } from "apollo-server-micro";
+import { PrismaClient, Recipe, Ingredient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +19,7 @@ const typeDefs = gql`
   type Query {
     recipes: [Recipe!]!
     ingredients(contains: String, startsWith: String, take: Int): [Ingredient!]!
+    recipe(id: ID!): Recipe!
   }
   type Mutation {
     createIngredient(title: String!, imageUrl: String!): Ingredient!
@@ -30,12 +31,13 @@ const typeDefs = gql`
     ): Recipe!
     addIngredientToRecipe(ingredientId: ID!, recipeId: ID!): Recipe!
     removeIngredientFromRecipe(ingredientId: ID!, recipeId: ID!): Recipe!
+    deleteRecipe(id: ID!): Recipe!
   }
 `;
 
 const resolvers = {
   Recipe: {
-    ingredients: async (recipe: Recipe, _args, _context) => {
+    ingredients: async (recipe: Recipe, _args: any, _context: any) => {
       const ingredients = await prisma.ingredient.findMany({
         where: {
           recipes: {
@@ -49,7 +51,7 @@ const resolvers = {
     },
   },
   Ingredient: {
-    recipes: async (ingredient: Ingredient, _args, _context) => {
+    recipes: async (ingredient: Ingredient, _args: any, _context: any) => {
       const recipes = await prisma.recipe.findMany({
         where: {
           ingredients: {
@@ -63,13 +65,21 @@ const resolvers = {
     },
   },
   Query: {
-    recipes: async (_parent, _args, _context): Promise<Recipe[]> => {
+    recipes: async (
+      _parent: any,
+      _args: any,
+      _context: any
+    ): Promise<Recipe[]> => {
       return prisma.recipe.findMany();
     },
     ingredients: async (
-      _parent,
-      { contains, startsWith, take },
-      _context
+      _parent: any,
+      {
+        contains,
+        startsWith,
+        take,
+      }: { contains?: string; startsWith?: string; take?: string },
+      _context: any
     ): Promise<Ingredient[]> =>
       prisma.ingredient.findMany({
         where: {
@@ -80,12 +90,18 @@ const resolvers = {
         },
         take: take ? +take : undefined,
       }),
+    recipe: async (_parent: any, { id }: { id: string }, _context: any) =>
+      prisma.recipe.findUnique({
+        where: {
+          id: +id,
+        },
+      }),
   },
   Mutation: {
     createIngredient: async (
-      _parent,
-      { title, imageUrl },
-      _context
+      _parent: any,
+      { title, imageUrl }: { title: string; imageUrl: string },
+      _context: any
     ): Promise<Ingredient> => {
       const ingredient = await prisma.ingredient.create({
         data: {
@@ -96,9 +112,19 @@ const resolvers = {
       return ingredient;
     },
     createRecipe: async (
-      _parent,
-      { title, description, imageUrl, ingredients },
-      _context
+      _parent: any,
+      {
+        title,
+        description,
+        imageUrl,
+        ingredients,
+      }: {
+        title: string;
+        description: string;
+        imageUrl: string;
+        ingredients: string[];
+      },
+      _context: any
     ): Promise<Recipe> => {
       const recipe = await prisma.recipe.create({
         data: {
@@ -113,9 +139,9 @@ const resolvers = {
       return recipe;
     },
     addIngredientToRecipe: async (
-      _parent,
-      { recipeId, ingredientId },
-      _context
+      _parent: any,
+      { recipeId, ingredientId }: { recipeId: string; ingredientId: string },
+      _context: any
     ): Promise<Recipe> => {
       return await prisma.recipe.update({
         where: {
@@ -131,9 +157,9 @@ const resolvers = {
       });
     },
     removeIngredientFromRecipe: (
-      _parent,
-      { recipeId, ingredientId },
-      _context
+      _parent: any,
+      { recipeId, ingredientId }: { recipeId: string; ingredientId: string },
+      _context: any
     ) =>
       prisma.recipe.update({
         where: {
@@ -147,6 +173,12 @@ const resolvers = {
           },
         },
       }),
+    deleteRecipe: (_parent: any, { id }: { id: string }, _context: any) =>
+      prisma.recipe.delete({
+        where: {
+          id: +id,
+        },
+      }),
   },
 };
 
@@ -155,7 +187,7 @@ const apolloServer = new ApolloServer({
   resolvers,
 });
 
-const handler = apolloServer.createHandler({ path: '/api/graphql' });
+const handler = apolloServer.createHandler({ path: "/api/graphql" });
 
 export const config = {
   api: {
