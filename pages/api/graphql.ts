@@ -14,6 +14,7 @@ const typeDefs = gql`
   type Ingredient {
     id: ID!
     title: String!
+    imageUrl: String!
     recipes: [Recipe!]!
   }
   type Query {
@@ -32,6 +33,7 @@ const typeDefs = gql`
     addIngredientToRecipe(ingredientId: ID!, recipeId: ID!): Recipe!
     removeIngredientFromRecipe(ingredientId: ID!, recipeId: ID!): Recipe!
     deleteRecipe(id: ID!): Recipe!
+    deleteIngredient(id: ID!): Ingredient!
   }
 `;
 
@@ -175,6 +177,12 @@ const resolvers = {
       }),
     deleteRecipe: (_parent: any, { id }: { id: string }, _context: any) =>
       prisma.recipe.delete({
+        where: {
+          id: +id,
+        },
+      }),
+    deleteIngredient: (_parent: any, { id }: { id: string }, _context: any) =>
+      prisma.ingredient.delete({
         where: {
           id: +id,
         },

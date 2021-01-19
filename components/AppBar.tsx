@@ -8,8 +8,8 @@ const AppBar: React.FC = () => (
     <Link href="/recipes">
       <a className="mr-4">Recipes</a>
     </Link>
-    <Link href="/recipes/create">
-      <a>Create Recipe</a>
+    <Link href="/ingredients">
+      <a className="mr-4">Ingredients</a>
     </Link>
   </div>
 )

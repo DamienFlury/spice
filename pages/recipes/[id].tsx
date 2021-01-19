@@ -26,7 +26,6 @@ const RecipeDetail = () => {
   return (
     <>
       <SEO title={`Recipe ${query.id}`} />
-      <AppBar />
       {!data ? (
         <div>Loading</div>
       ) : (

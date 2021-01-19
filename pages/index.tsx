@@ -1,10 +1,16 @@
-import Head from 'next/head';
-import Link from 'next/link';
-import SEO from '../components/SEO';
+import Head from "next/head";
+import Link from "next/link";
+import AppBar from "../components/AppBar";
+import SEO from "../components/SEO";
+import { motion } from "framer-motion";
 
 export default function Home() {
   return (
-    <div>
+    <motion.div
+      exit={{ opacity: 0 }}
+      style={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       <SEO title="Spice" />
       <div className="h-64 bg-primary flex justify-center items-end">
         <h1 className="text-white text-6xl">Spice</h1>
@@ -41,6 +47,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

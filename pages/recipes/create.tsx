@@ -2,12 +2,13 @@ import { useState, useReducer } from "react";
 import { usePaginatedQuery, useMutation } from "react-query";
 import request from "graphql-request";
 import { Ingredient } from "@prisma/client";
-import IngredientsList from "../../components/IngredientsList";
+import IngredientsList from "../../components/ingredients/IngredientsList";
 import SEO from "../../components/SEO";
 import TextField from "../../components/TextField";
 import AppBar from "../../components/AppBar";
 import { useForm } from "react-hook-form";
 import classNames from "classnames";
+import { motion } from "framer-motion";
 
 const SEARCH_INGREDIENTS = /* GraphQL */ `
   query($startsWith: String) {
@@ -92,8 +93,11 @@ const RecipeCreator: React.FC = () => {
   const [selectedIngredients, dispatch] = useReducer(ingredientsReducer, []);
 
   return (
-    <>
-      <AppBar />
+    <motion.div
+      style={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
       <div className="container mx-auto rounded shadow p-4 my-4">
         <SEO title="Create Recipe | Spice" />
         <h2 className="text-4xl mb-4">Create Recipe</h2>
@@ -171,7 +175,7 @@ const RecipeCreator: React.FC = () => {
           </button>
         </form>
       </div>
-    </>
+    </motion.div>
   );
 };
 

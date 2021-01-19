@@ -2,7 +2,7 @@ import { Ingredient } from '@prisma/client';
 
 type Props = {
   ingredients: Ingredient[];
-  onRemove?: (id: number) => void;
+  onRemove: (id: number) => void;
 };
 
 const IngredientsList: React.FC<Props> = ({ ingredients, onRemove }) => (
